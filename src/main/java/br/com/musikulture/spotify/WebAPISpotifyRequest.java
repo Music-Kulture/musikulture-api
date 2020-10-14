@@ -25,13 +25,13 @@ public class WebAPISpotifyRequest {
 
     private static GetUsersSavedTracksRequest getUsersSavedTracksRequest = null;
 
-    public static List<SavedTrack> getUsersSavedTracks_Sync(String token, String market) {
+    public static List<SavedTrack> getUsersSavedTracks_Sync(String token) {
         try {
             createApi(token);
             getUsersSavedTracksRequest = spotifyApi.getUsersSavedTracks()
-                    .limit(10)
+                    .limit(42)
                     .offset(0)
-                    .market(CountryCode.getByCode(market))
+//                    .market(CountryCode.BR)
                     .build();
 
             return Arrays.asList(getUsersSavedTracksRequest.execute().getItems());

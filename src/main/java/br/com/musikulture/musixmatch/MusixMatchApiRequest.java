@@ -14,14 +14,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MusicxMatchApiRequest {
+public class MusixMatchApiRequest {
 
+    public final String apiKey = "9ee1a5df4a4c810accbf5821d848c122";
 
-    public static List<TrackAnalyzed> analyze(List<SavedTrack> tracks) throws MusixMatchException {
+    public List<TrackAnalyzed> analyze(List<SavedTrack> tracks,
+                                              String lang) {
 
         List<TrackAnalyzed> trackAnalyzeds = new ArrayList<>();
 
-        String apiKey = "9ee1a5df4a4c810accbf5821d848c122";
         MusixMatch musixMatch = new MusixMatch(apiKey);
 
         tracks.forEach(savedTrack -> {
@@ -50,13 +51,13 @@ public class MusicxMatchApiRequest {
                     allArtists.add(artist.getName());
                 }
 
-
-                trackAnalyzeds.add(new TrackAnalyzed(savedTrack.getTrack().getId(),
-                        (Integer.toString(trackID)),
-                        trackName,
-                        artistName,
-                        allArtists,
-                        language));
+                if (language.equals(lang))
+                    trackAnalyzeds.add(new TrackAnalyzed(savedTrack.getTrack().getId(),
+                            (Integer.toString(trackID)),
+                            trackName,
+                            artistName,
+                            allArtists,
+                            language));
 
 
             } catch (MusixMatchException | IOException e) {
@@ -65,6 +66,9 @@ public class MusicxMatchApiRequest {
             }
         });
 
-    return trackAnalyzeds;
+        return trackAnalyzeds;
+    }
+
+    public MusixMatchApiRequest() {
     }
 }

@@ -1,7 +1,5 @@
 package br.com.musikulture.music;
 
-import com.neovisionaries.i18n.CountryCode;
-
 import java.util.List;
 
 public class TrackAnalyzed {
