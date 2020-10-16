@@ -10,30 +10,28 @@ public class TrackAnalyzed {
     private String principalArtist;
     private List<String> allArtists;
     private String language;
+    private List<String> genres;
 
 
-    @Override
-    public String toString() {
-        return "TrackAnalyzed{" +
-                "spotifyTrackId='" + spotifyTrackId + '\'' +
-                ", musixMatchTrackId='" + musixMatchTrackId + '\'' +
-                ", trackName='" + trackName + '\'' +
-                ", principalArtist='" + principalArtist + '\'' +
-                ", allArtists=" + allArtists +
-                ", language='" + language + '\'' +
-                '}';
+    public List<String> getGenres() {
+        return genres;
     }
 
-    public TrackAnalyzed() {
+    public void setGenres(List<String> genres) {
+        this.genres = genres;
     }
 
-    public TrackAnalyzed(String spotifyTrackId, String musixMatchTrackId, String trackName, String principalArtist, List<String> allArtists, String language) {
+    public TrackAnalyzed(String spotifyTrackId, String musixMatchTrackId, String trackName, String principalArtist, List<String> allArtists, String language, List<String> genres) {
         this.spotifyTrackId = spotifyTrackId;
         this.musixMatchTrackId = musixMatchTrackId;
         this.trackName = trackName;
         this.principalArtist = principalArtist;
         this.allArtists = allArtists;
         this.language = language;
+        this.genres = genres;
+    }
+
+    public TrackAnalyzed() {
     }
 
     public String getSpotifyTrackId() {
