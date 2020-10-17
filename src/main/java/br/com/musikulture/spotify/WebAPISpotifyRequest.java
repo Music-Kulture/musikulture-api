@@ -8,7 +8,6 @@ import com.wrapper.spotify.model_objects.specification.Paging;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
 import com.wrapper.spotify.requests.data.artists.GetArtistRequest;
 import com.wrapper.spotify.requests.data.library.GetUsersSavedTracksRequest;
-import com.wrapper.spotify.requests.data.tracks.GetTrackRequest;
 import org.apache.hc.core5.http.ParseException;
 
 import java.io.IOException;
@@ -35,7 +34,7 @@ public class WebAPISpotifyRequest {
         try {
             createApi(token);
             getUsersSavedTracksRequest = spotifyApi.getUsersSavedTracks()
-                    .limit(42)
+                    .limit(20)
                     .offset(0)
 //                    .market(CountryCode.BR)
                     .build();
@@ -77,10 +76,6 @@ public class WebAPISpotifyRequest {
 
 
             final CompletableFuture<Paging<SavedTrack>> pagingFuture = getUsersSavedTracksRequest.executeAsync();
-
-            // Thread free to do other tasks...
-
-            // Example Only. Never block in production code.
             final Paging<SavedTrack> savedTrackPaging = pagingFuture.join();
 
             System.out.println("Total: " + savedTrackPaging.getTotal());

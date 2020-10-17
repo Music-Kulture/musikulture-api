@@ -13,14 +13,6 @@ public class TrackAnalyzed {
     private List<String> genres;
 
 
-    public List<String> getGenres() {
-        return genres;
-    }
-
-    public void setGenres(List<String> genres) {
-        this.genres = genres;
-    }
-
     public TrackAnalyzed(String spotifyTrackId, String musixMatchTrackId, String trackName, String principalArtist, List<String> allArtists, String language, List<String> genres) {
         this.spotifyTrackId = spotifyTrackId;
         this.musixMatchTrackId = musixMatchTrackId;
@@ -32,6 +24,14 @@ public class TrackAnalyzed {
     }
 
     public TrackAnalyzed() {
+    }
+
+    public List<String> getGenres() {
+        return genres;
+    }
+
+    public void setGenres(List<String> genres) {
+        this.genres = genres;
     }
 
     public String getSpotifyTrackId() {
@@ -80,5 +80,18 @@ public class TrackAnalyzed {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    @Override
+    public String toString() {
+        return "TrackAnalyzed{" +
+                "spotifyTrackId='" + spotifyTrackId + '\'' +
+                ", musixMatchTrackId='" + musixMatchTrackId + '\'' +
+                ", trackName='" + trackName + '\'' +
+                ", principalArtist='" + principalArtist + '\'' +
+                ", allArtists=" + allArtists +
+                ", language='" + language + '\'' +
+                ", genres=" + genres +
+                '}';
     }
 }
