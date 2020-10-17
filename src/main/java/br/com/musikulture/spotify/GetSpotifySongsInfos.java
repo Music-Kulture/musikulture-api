@@ -19,6 +19,9 @@ public class GetSpotifySongsInfos {
 
         MusixMatchApiRequest request = new MusixMatchApiRequest();
 
+        RecommendationBuilder recommendationBuilder = new RecommendationBuilder();
+
+
         return request.analyze(savedTracks,lang);
 
 

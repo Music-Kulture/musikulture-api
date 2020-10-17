@@ -19,6 +19,45 @@ public class MusixMatchApiRequest {
 
     public final String apiKey = "9ee1a5df4a4c810accbf5821d848c122";
 
+
+    public List<SavedTrack> analyzeSavedTracks(List<SavedTrack> tracks,
+                                               String lang) {
+
+        List<SavedTrack> savedTracks = new ArrayList<>();
+
+        MusixMatch musixMatch = new MusixMatch(apiKey);
+
+        tracks.forEach(savedTrack -> {
+            String trackName = savedTrack.getTrack().getName();
+            String artistName = savedTrack.getTrack().getArtists()[0].getName();
+
+            Track track;
+            try {
+                track = musixMatch.getMatchingTrack(trackName, artistName);
+
+                TrackData data = track.getTrack();
+
+                int trackID = data.getTrackId();
+
+                Lyrics lyrics = musixMatch.getLyrics(trackID);
+
+                String language = LanguageDetector.getDefaultLanguageDetector().loadModels().detect(lyrics.getLyricsBody()).getLanguage();
+
+                System.out.println(language);
+
+
+                if (language.equals(lang))
+                    savedTracks.add(savedTrack);
+
+            } catch (MusixMatchException | IOException e) {
+                e.printStackTrace();
+                System.out.println("No Music found!");
+            }
+        });
+        return tracks;
+    }
+
+
     public List<TrackAnalyzed> analyze(List<SavedTrack> tracks,
                                        String lang) {
 
