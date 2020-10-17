@@ -1,6 +1,7 @@
 package br.com.musikulture.musixmatch;
 
 import br.com.musikulture.music.TrackAnalyzed;
+import br.com.musikulture.spotify.WebAPISpotifyRequest;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
 import org.apache.tika.language.detect.LanguageDetector;
@@ -19,7 +20,7 @@ public class MusixMatchApiRequest {
     public final String apiKey = "9ee1a5df4a4c810accbf5821d848c122";
 
     public List<TrackAnalyzed> analyze(List<SavedTrack> tracks,
-                                              String lang) {
+                                       String lang) {
 
         List<TrackAnalyzed> trackAnalyzeds = new ArrayList<>();
 
@@ -28,6 +29,7 @@ public class MusixMatchApiRequest {
         tracks.forEach(savedTrack -> {
             String trackName = savedTrack.getTrack().getName();
             String artistName = savedTrack.getTrack().getArtists()[0].getName();
+            List<String> genres = WebAPISpotifyRequest.getGenres(savedTrack.getTrack().getArtists());
 
             Track track = null;
             try {
@@ -57,7 +59,9 @@ public class MusixMatchApiRequest {
                             trackName,
                             artistName,
                             allArtists,
-                            language));
+                            language,
+                            genres)
+                    );
 
 
             } catch (MusixMatchException | IOException e) {

@@ -3,12 +3,15 @@ package br.com.musikulture.spotify;
 import com.neovisionaries.i18n.CountryCode;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
+import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
 import com.wrapper.spotify.model_objects.specification.Paging;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
+import com.wrapper.spotify.requests.data.artists.GetArtistRequest;
 import com.wrapper.spotify.requests.data.library.GetUsersSavedTracksRequest;
 import org.apache.hc.core5.http.ParseException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -25,11 +28,13 @@ public class WebAPISpotifyRequest {
 
     private static GetUsersSavedTracksRequest getUsersSavedTracksRequest = null;
 
+    private static GetArtistRequest getArtistRequest = null;
+
     public static List<SavedTrack> getUsersSavedTracks_Sync(String token) {
         try {
             createApi(token);
             getUsersSavedTracksRequest = spotifyApi.getUsersSavedTracks()
-                    .limit(42)
+                    .limit(20)
                     .offset(0)
 //                    .market(CountryCode.BR)
                     .build();
@@ -39,6 +44,24 @@ public class WebAPISpotifyRequest {
             System.out.println("Error: " + e.getMessage());
         }
         return null;
+    }
+
+    public static List<String> getGenres(ArtistSimplified[] artistsId) {
+        List<String> genres = new ArrayList<>();
+
+        Arrays.asList(artistsId).forEach(artist -> {
+
+            getArtistRequest = spotifyApi
+                    .getArtist(artist.getId())
+                    .build();
+            try {
+                genres.addAll(Arrays.asList(getArtistRequest.execute().getGenres()));
+            } catch (IOException | SpotifyWebApiException | ParseException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        });
+
+        return genres;
     }
 
     public static void getUsersSavedTracks_Async(String token, String market) {
@@ -53,10 +76,6 @@ public class WebAPISpotifyRequest {
 
 
             final CompletableFuture<Paging<SavedTrack>> pagingFuture = getUsersSavedTracksRequest.executeAsync();
-
-            // Thread free to do other tasks...
-
-            // Example Only. Never block in production code.
             final Paging<SavedTrack> savedTrackPaging = pagingFuture.join();
 
             System.out.println("Total: " + savedTrackPaging.getTotal());
