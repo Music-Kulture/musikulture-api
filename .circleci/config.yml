@@ -10,8 +10,8 @@ jobs:
             set -x
             sudo curl https://cli-assets.heroku.com/install.sh | sh
             HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:login
-            HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:push -a music-kulture-api web
-            HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:release -a music-kulture-api web
+            HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:push -a musikulture-api web
+            HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:release -a musikulture-api web
   run:
     docker:
       - image: circleci/openjdk:8-jdk
