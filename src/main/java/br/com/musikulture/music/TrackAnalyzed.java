@@ -1,6 +1,12 @@
 package br.com.musikulture.music;
 
+import br.com.musikulture.spotify.WebAPISpotifyRequest;
+import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
+import com.wrapper.spotify.model_objects.specification.TrackSimplified;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TrackAnalyzed {
 
@@ -8,22 +14,54 @@ public class TrackAnalyzed {
     private String musixMatchTrackId;
     private String trackName;
     private String principalArtist;
-    private List<String> allArtists;
+    private String principalArtistId;
+    private Map<String, String> allArtists;
     private String language;
     private List<String> genres;
 
 
-    public TrackAnalyzed(String spotifyTrackId, String musixMatchTrackId, String trackName, String principalArtist, List<String> allArtists, String language, List<String> genres) {
+    public TrackAnalyzed(String spotifyTrackId, String musixMatchTrackId, String trackName, String principalArtist, String principalArtistId, Map<String, String> allArtists, String language, List<String> genres) {
         this.spotifyTrackId = spotifyTrackId;
         this.musixMatchTrackId = musixMatchTrackId;
         this.trackName = trackName;
         this.principalArtist = principalArtist;
+        this.principalArtistId = principalArtistId;
         this.allArtists = allArtists;
         this.language = language;
         this.genres = genres;
     }
 
+    public TrackAnalyzed(TrackSimplified trackSimplified, String language, int musixMatchTrackId) {
+        this.language = language;
+        this.musixMatchTrackId = Integer.toString(musixMatchTrackId);
+        allArtists = new HashMap<>();
+        if (trackSimplified.getArtists() != null && trackSimplified.getArtists()[0].getId() != null && trackSimplified.getArtists()[0].getName() != null){
+            for (ArtistSimplified artist : trackSimplified.getArtists()) {
+                this.allArtists.put(artist.getName(), artist.getId());
+            }
+            this.principalArtist = trackSimplified.getArtists()[0].getName();
+            this.principalArtistId = trackSimplified.getArtists()[0].getId();
+        }
+        else {
+            this.allArtists.put("no value", "no value");
+            this.principalArtist = "no value";
+            this.principalArtistId = "no value";
+        }
+        this.trackName = trackSimplified.getName();
+        this.spotifyTrackId = trackSimplified.getId();
+
+        this.genres = WebAPISpotifyRequest.getGenres(trackSimplified.getArtists());
+    }
+
     public TrackAnalyzed() {
+    }
+
+    public String getPrincipalArtistId() {
+        return principalArtistId;
+    }
+
+    public void setPrincipalArtistId(String principalArtistId) {
+        this.principalArtistId = principalArtistId;
     }
 
     public List<String> getGenres() {
@@ -66,11 +104,11 @@ public class TrackAnalyzed {
         this.principalArtist = principalArtist;
     }
 
-    public List<String> getAllArtists() {
+    public Map<String, String> getAllArtists() {
         return allArtists;
     }
 
-    public void setAllArtists(List<String> allArtists) {
+    public void setAllArtists(Map<String, String> allArtists) {
         this.allArtists = allArtists;
     }
 
@@ -89,6 +127,7 @@ public class TrackAnalyzed {
                 ", musixMatchTrackId='" + musixMatchTrackId + '\'' +
                 ", trackName='" + trackName + '\'' +
                 ", principalArtist='" + principalArtist + '\'' +
+                ", principalArtistId='" + principalArtistId + '\'' +
                 ", allArtists=" + allArtists +
                 ", language='" + language + '\'' +
                 ", genres=" + genres +

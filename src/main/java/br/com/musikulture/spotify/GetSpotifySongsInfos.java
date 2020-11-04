@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 public class GetSpotifySongsInfos {
@@ -17,15 +19,17 @@ public class GetSpotifySongsInfos {
                                        @RequestParam(name = "lang", defaultValue = "en") String lang) {
         List<SavedTrack> savedTracks = WebAPISpotifyRequest.getUsersSavedTracks_Sync(token);
 
-        MusixMatchApiRequest request = new MusixMatchApiRequest();
+        RecommendationBuilder recommendationBuilder = new RecommendationBuilder(
+                MusixMatchApiRequest.analyze(Objects.requireNonNull(savedTracks)));
 
-        return request.analyze(savedTracks,lang);
+
+        return recommendationBuilder.getRecommendationListFromTrackAnalyzedList(lang);
 
 
     }
 
     @GetMapping("/")
-    public String home(){
+    public String home() {
         return "DEU BOM, INICIOU!";
     }
 
