@@ -11,6 +11,7 @@ import org.jmusixmatch.MusixMatchException;
 import org.jmusixmatch.entity.lyrics.Lyrics;
 import org.jmusixmatch.entity.track.Track;
 import org.jmusixmatch.entity.track.TrackData;
+import org.jmusixmatch.snippet.Snippet;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class MusixMatchApiRequest {
 
                 Lyrics lyrics = musixMatch.getLyrics(trackID);
 
-                String language = LanguageDetector.getDefaultLanguageDetector().loadModels().detect(lyrics.getLyricsBody()).getLanguage();
+                String language = musixMatch.getSnippet(trackID).getSnippetLanguage();
 
                 System.out.println(language);
 
@@ -107,7 +108,7 @@ public class MusixMatchApiRequest {
                 );
 
 
-            } catch (MusixMatchException | IOException e) {
+            } catch (MusixMatchException e) {
                 e.printStackTrace();
                 System.out.println("No Music found!");
             }
