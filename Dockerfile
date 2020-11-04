@@ -12,4 +12,4 @@ COPY --from=build /home/gradle/src/build/libs/*.jar /app/musikulture-api-jar.jar
 
 EXPOSE 80 443
 
-CMD ["sh", "-c", "java -jar /app/musikulture-api-jar.jar"]
+CMD ["sh", "-c", "java $JAVA_TOOL_OPTIONS -jar /app/musikulture-api-jar.jar"]
