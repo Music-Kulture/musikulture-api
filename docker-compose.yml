@@ -1,0 +1,41 @@
+version: '3.5'
+
+services:
+  music-kulture-api-postgres:
+    container_name: music-kulture-api-postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      PGDATA: /data/music-kulture-api-postgres
+    volumes:
+      - music-kulture-api-postgres:/data/postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - music-kulture-api-postgres-network
+    restart: unless-stopped
+
+  music-kulture-api-pgadmin4:
+    container_name: music-kulture-api-pgadmin4
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    volumes:
+      - music-kulture-api-pgadmin4:/root/.pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5051}:80"
+    depends_on:
+      - music-kulture-api-postgres
+    networks:
+      - music-kulture-api-postgres-network
+    restart: unless-stopped
+
+networks:
+  music-kulture-api-postgres-network:
+    driver: bridge
+
+volumes:
+  music-kulture-api-postgres:
+  music-kulture-api-pgadmin4:

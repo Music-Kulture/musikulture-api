@@ -1,50 +1,69 @@
 package br.com.musikulture.spotify;
 
-import com.neovisionaries.i18n.CountryCode;
+import br.com.musikulture.entity.Genre;
+import br.com.musikulture.repository.ArtistRepository;
+import br.com.musikulture.repository.GenreRepository;
+import br.com.musikulture.repository.MusicLanguageRepository;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
-import com.wrapper.spotify.model_objects.specification.Paging;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
 import com.wrapper.spotify.model_objects.specification.TrackSimplified;
 import com.wrapper.spotify.requests.data.artists.GetArtistRequest;
 import com.wrapper.spotify.requests.data.browse.GetRecommendationsRequest;
 import com.wrapper.spotify.requests.data.library.GetUsersSavedTracksRequest;
 import org.apache.hc.core5.http.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
+@Component
 public class WebAPISpotifyRequest {
 
-    private static SpotifyApi spotifyApi;
+    private final Logger LOGGER = LoggerFactory.getLogger(WebAPISpotifyRequest.class);
 
-    private static void createApi(String accessToken) {
+    @Autowired
+    private MusicLanguageRepository musicLanguageRepository;
+
+    @Autowired
+    private ArtistRepository artistRepository;
+
+    @Autowired
+    private GenreRepository genreRepository;
+
+    private SpotifyApi spotifyApi;
+
+    private final String clientId = System.getenv("SPOTIFY_WEB_API_CLIENT-ID");
+
+    private final String clientSecret = System.getenv("SPOTIFY_WEB_API_SECRET-ID");
+
+    private void createApi(String accessToken) {
         spotifyApi = new SpotifyApi.Builder().setAccessToken(accessToken)
-                .setClientId("c7d4ed444f9a4dd691f6bc93c4760568")
-                .setClientSecret("f959b87840334d0282cd579eb8ffcc2d")
+                .setClientId(clientId)
+                .setClientSecret(clientSecret)
                 .build();
     }
 
-    private static GetUsersSavedTracksRequest getUsersSavedTracksRequest = null;
+    private GetUsersSavedTracksRequest getUsersSavedTracksRequest = null;
 
-    private static GetArtistRequest getArtistRequest = null;
+    private GetArtistRequest getArtistRequest = null;
 
-    private static GetRecommendationsRequest getRecommendationsRequest= null;
+    private GetRecommendationsRequest getRecommendationsRequest = null;
 
-    public static List<TrackSimplified> getRecommendations(String artistSeed, String genreSeed, String trackSeed, String lang){
+    public List<TrackSimplified> getRecommendations(String artistSeed, String genreSeed, String trackSeed, String lang) {
         List<TrackSimplified> recommendationTracks = new ArrayList<>();
 
-        try{
+        try {
             getRecommendationsRequest = spotifyApi
                     .getRecommendations()
 //                    .market(CountryCode.getByCodeIgnoreCase(lang))
-                    .limit(5)
+                    .limit(100)
                     .seed_artists(artistSeed)
                     .seed_genres(genreSeed)
                     .seed_tracks(trackSeed)
@@ -52,17 +71,15 @@ public class WebAPISpotifyRequest {
             recommendationTracks.addAll(Arrays.asList(getRecommendationsRequest.execute().getTracks()));
 
 
-        }catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("m=getRecommendations, msg=Error: " + e.getMessage());
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
         }
-
-
 
 
         return recommendationTracks;
     }
 
-    public static List<SavedTrack> getUsersSavedTracks_Sync(String token) {
+    public List<SavedTrack> getUsersSavedTracks_Sync(String token) {
         try {
             createApi(token);
             getUsersSavedTracksRequest = spotifyApi.getUsersSavedTracks()
@@ -73,13 +90,16 @@ public class WebAPISpotifyRequest {
 
             return Arrays.asList(getUsersSavedTracksRequest.execute().getItems());
         } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
+            LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
         }
         return null;
     }
 
-    public static List<String> getGenres(ArtistSimplified[] artistsId) {
+    public List<String> getGenres(ArtistSimplified[] artistsId) {
         List<String> genres = new ArrayList<>();
+        List<String> artists = new ArrayList<>();
+
+        Arrays.asList(artistsId).forEach(artist -> artists.add(artist.getId()));
 
         Arrays.asList(artistsId).forEach(artist -> {
 
@@ -87,33 +107,33 @@ public class WebAPISpotifyRequest {
                     .getArtist(artist.getId())
                     .build();
             try {
-                genres.addAll(Arrays.asList(getArtistRequest.execute().getGenres()));
+                List<String> byArtists = new ArrayList<>();
+                for (int i = 0; i < artists.size(); i++) {
+                    String s1 = artists.get(i);
+                    String artistsAndOffset = genreRepository.findByArtistsAndOffset(s1, i);
+                    if (artistsAndOffset != null)
+                        byArtists.add(artistsAndOffset);
+                }
+                if (byArtists.size() == 0 && artistsId.length < 5) {
+                    List<String> genres1 = Arrays.asList(getArtistRequest.execute().getGenres());
+                    List<Genre> genreList = new ArrayList<>();
+                    genres1.forEach(s -> {
+                        if (!genreRepository.existsByName(s))
+                            genreList.add(new Genre(s));
+                    });
+                    if (!genreList.isEmpty()) {
+                        genreRepository.saveAll(genreList);
+                        genreRepository.flush();
+                    }
+                    genres.addAll(genres1);
+                } else
+                    genres.addAll(byArtists);
+
             } catch (IOException | SpotifyWebApiException | ParseException e) {
-                System.out.println("Error: " + e.getMessage());
+                LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
             }
         });
 
         return genres;
-    }
-
-    public static void getUsersSavedTracks_Async(String token, String market) {
-        try {
-
-            createApi(token);
-            getUsersSavedTracksRequest = spotifyApi.getUsersSavedTracks()
-                    .offset(0)
-                    .market(CountryCode.getByCode(market))
-                    .build();
-
-
-            final CompletableFuture<Paging<SavedTrack>> pagingFuture = getUsersSavedTracksRequest.executeAsync();
-            final Paging<SavedTrack> savedTrackPaging = pagingFuture.join();
-
-            System.out.println("Total: " + savedTrackPaging.getTotal());
-        } catch (CompletionException e) {
-            System.out.println("Error: " + e.getCause().getMessage());
-        } catch (CancellationException e) {
-            System.out.println("Async operation cancelled.");
-        }
     }
 }
