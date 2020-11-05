@@ -1,36 +1,32 @@
 package br.com.musikulture.spotify;
 
-import br.com.musikulture.entity.Artist;
 import br.com.musikulture.entity.Genre;
 import br.com.musikulture.repository.ArtistRepository;
 import br.com.musikulture.repository.GenreRepository;
 import br.com.musikulture.repository.MusicLanguageRepository;
-import com.neovisionaries.i18n.CountryCode;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
-import com.wrapper.spotify.model_objects.specification.Paging;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
 import com.wrapper.spotify.model_objects.specification.TrackSimplified;
 import com.wrapper.spotify.requests.data.artists.GetArtistRequest;
 import com.wrapper.spotify.requests.data.browse.GetRecommendationsRequest;
 import com.wrapper.spotify.requests.data.library.GetUsersSavedTracksRequest;
 import org.apache.hc.core5.http.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 @Component
 public class WebAPISpotifyRequest {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(WebAPISpotifyRequest.class);
 
     @Autowired
     private MusicLanguageRepository musicLanguageRepository;
@@ -43,9 +39,9 @@ public class WebAPISpotifyRequest {
 
     private SpotifyApi spotifyApi;
 
-    private String clientId = System.getenv("SPOTIFY_WEB_API_CLIENT-ID");
+    private final String clientId = System.getenv("SPOTIFY_WEB_API_CLIENT-ID");
 
-    private String clientSecret = System.getenv("SPOTIFY_WEB_API_SECRET-ID");
+    private final String clientSecret = System.getenv("SPOTIFY_WEB_API_SECRET-ID");
 
     private void createApi(String accessToken) {
         spotifyApi = new SpotifyApi.Builder().setAccessToken(accessToken)
@@ -67,7 +63,7 @@ public class WebAPISpotifyRequest {
             getRecommendationsRequest = spotifyApi
                     .getRecommendations()
 //                    .market(CountryCode.getByCodeIgnoreCase(lang))
-                    .limit(5)
+                    .limit(100)
                     .seed_artists(artistSeed)
                     .seed_genres(genreSeed)
                     .seed_tracks(trackSeed)
@@ -76,7 +72,7 @@ public class WebAPISpotifyRequest {
 
 
         } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("m=getRecommendations, msg=Error: " + e.getMessage());
+            LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
         }
 
 
@@ -94,7 +90,7 @@ public class WebAPISpotifyRequest {
 
             return Arrays.asList(getUsersSavedTracksRequest.execute().getItems());
         } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
+            LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
         }
         return null;
     }
@@ -134,7 +130,7 @@ public class WebAPISpotifyRequest {
                     genres.addAll(byArtists);
 
             } catch (IOException | SpotifyWebApiException | ParseException e) {
-                System.out.println("Error: " + e.getMessage());
+                LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
             }
         });
 

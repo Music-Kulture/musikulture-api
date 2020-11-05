@@ -26,6 +26,6 @@ public interface MusicLanguageRepository extends JpaRepository<MusicLanguage, Lo
 
     boolean existsBySpotifyId(String spotifyId);
 
-    @Query(value = "select artist.name from music, music_artists, artist where music_artists.artist_id = artist.id AND music_artists.music_id = music.id AND music.spotify_id = \':id\'", nativeQuery = true)
+    @Query(value = "select artist.name from music, music_artists, artist where music_artists.artist_id = artist.id AND music_artists.music_id = music.id AND music.spotify_id = ':id'", nativeQuery = true)
     String findArtistsBySpotifyId(String id);
 }

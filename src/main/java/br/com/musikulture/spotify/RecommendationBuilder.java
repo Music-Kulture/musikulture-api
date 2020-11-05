@@ -38,13 +38,7 @@ public class RecommendationBuilder {
             trackSeed.get().append(trackAnalyzed.getSpotifyTrackId());
             genreSeed.get().deleteCharAt(genreSeed.get().length() - 1);
 
-
-            System.out.println(artistSeed.toString());
-            System.out.println(genreSeed.toString());
-            System.out.println(trackSeed.toString());
-
             List<TrackSimplified> preRecommendationList = webAPISpotifyRequest.getRecommendations(artistSeed.toString(), genreSeed.toString(), trackSeed.toString(), lang);
-
 
             recommendationList.addAll(musixMatchApiRequest.analyzeSavedTracks(preRecommendationList, lang, webAPISpotifyRequest));
 

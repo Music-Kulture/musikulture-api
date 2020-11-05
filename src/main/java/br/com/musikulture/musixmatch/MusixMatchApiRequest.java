@@ -8,7 +8,6 @@ import br.com.musikulture.repository.ArtistRepository;
 import br.com.musikulture.repository.GenreRepository;
 import br.com.musikulture.repository.MusicLanguageRepository;
 import br.com.musikulture.spotify.WebAPISpotifyRequest;
-import com.ctc.wstx.evt.WEntityDeclaration;
 import com.wrapper.spotify.model_objects.specification.ArtistSimplified;
 import com.wrapper.spotify.model_objects.specification.SavedTrack;
 import com.wrapper.spotify.model_objects.specification.TrackSimplified;
@@ -16,6 +15,8 @@ import org.jmusixmatch.MusixMatch;
 import org.jmusixmatch.MusixMatchException;
 import org.jmusixmatch.entity.track.Track;
 import org.jmusixmatch.entity.track.TrackData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,8 @@ import java.util.Set;
 @Component
 public class MusixMatchApiRequest {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(MusixMatchApiRequest.class);
+
     @Autowired
     private MusicLanguageRepository musicLanguageRepository;
 
@@ -38,9 +41,18 @@ public class MusixMatchApiRequest {
     @Autowired
     private GenreRepository genreRepository;
 
+    String trackName;
+    String artistName;
+    String artistId;
+    Integer trackId = 0;
+    String language = "";
+    Map<String, String> allArtists = new HashMap<>();
+    List<String> genres = new ArrayList<>();
+
 
     public String apiKey = System.getenv("MUSIX_MATCH_API_KEY");
 
+    @SuppressWarnings("DuplicatedCode")
     public List<TrackAnalyzed> analyzeSavedTracks(List<TrackSimplified> tracks,
                                                   String lang, WebAPISpotifyRequest webAPISpotifyRequest) {
 
@@ -49,13 +61,8 @@ public class MusixMatchApiRequest {
         MusixMatch musixMatch = new MusixMatch(apiKey);
 
         for (TrackSimplified trackSimplified : tracks) {
-            String trackName;
-            String artistName;
-            String artistId;
-            Integer trackId = 0;
-            String language = "";
-            Map<String, String> allArtists = new HashMap<>();
-            List<String> genres = new ArrayList<>();
+            allArtists = new HashMap<>();
+            genres = new ArrayList<>();
 
             trackName = trackSimplified.getName();
             artistName = trackSimplified.getArtists()[0].getName();
@@ -73,10 +80,8 @@ public class MusixMatchApiRequest {
                 trackId = musicLanguage.getMusixId();
                 language = musicLanguage.getLanguage();
 
-                if (language.equalsIgnoreCase(lang)) {
-                    trackAnalyzeds.add(new TrackAnalyzed(trackSimplified, language, trackId, webAPISpotifyRequest));
-                    System.out.println("IT MATCHES THE LANGUAGE");
-                }
+                LOGGER.info("m=analyze, msg=Fluxo do Banco de Dados");
+
             } else {
 
 
@@ -84,7 +89,6 @@ public class MusixMatchApiRequest {
                 MusicLanguage musicLanguage;
 
                 genres = webAPISpotifyRequest.getGenres(trackSimplified.getArtists());
-                track = null;
                 try {
                     track = musixMatch.getMatchingTrack(trackName, artistName);
 
@@ -97,7 +101,6 @@ public class MusixMatchApiRequest {
 
                     if (language.length() > 3) continue;
 
-                    System.out.println(language);
 
                     List<Genre> genreSet = new ArrayList<>();
 
@@ -119,9 +122,7 @@ public class MusixMatchApiRequest {
                         }
                         allArtists.put(artist.getName(), artist.getId());
                     }
-//                    artistSet.forEach(artist -> {
-//                        artistRepository.saveAndFlush(artist);
-//                    });
+
                     musicLanguage = new MusicLanguage(
                             trackName,
                             trackId,
@@ -130,19 +131,14 @@ public class MusixMatchApiRequest {
                     musicLanguage.setArtists(artistSet);
                     if (!musicLanguageRepository.existsBySpotifyId(trackSimplified.getId()))
                         musicLanguageRepository.saveAndFlush(musicLanguage);
-
-                    System.out.print(".");
-
-
-                    if (language.equalsIgnoreCase(lang)) {
-                        trackAnalyzeds.add(new TrackAnalyzed(trackSimplified, language, trackId, webAPISpotifyRequest));
-                        System.out.println("IT MATCHES THE LANGUAGE");
-                    }
-
-
+                    LOGGER.info("m=analyze, msg=Fluxo da API");
                 } catch (MusixMatchException | RuntimeException e) {
-                    System.out.println("m=analyzeSavedTracks msg= Error: " + e.getMessage() + ", no music");
+                    LOGGER.error("m=analyzeSavedTracks msg= Error: {}",e.getMessage());
                 }
+            }
+            if (language.equalsIgnoreCase(lang)) {
+                trackAnalyzeds.add(new TrackAnalyzed(trackSimplified, language, trackId, webAPISpotifyRequest));
+                LOGGER.info("m=analyzeSavedTracks, msg=Found a match for track \"{}\"", trackName);
             }
         }
         return trackAnalyzeds;
@@ -156,13 +152,8 @@ public class MusixMatchApiRequest {
         MusixMatch musixMatch = new MusixMatch(apiKey);
 
         tracks.forEach(savedTrack -> {
-            String trackName;
-            String artistName;
-            String artistId;
-            Integer trackId = 0;
-            String language = "";
-            Map<String, String> allArtists = new HashMap<>();
-            List<String> genres = new ArrayList<>();
+            allArtists = new HashMap<>();
+            genres = new ArrayList<>();
 
             trackName = savedTrack.getTrack().getName();
             artistName = savedTrack.getTrack().getArtists()[0].getName();
@@ -182,6 +173,7 @@ public class MusixMatchApiRequest {
                     allArtists.put(artist.getId(), artist.getName());
                 });
 
+                LOGGER.info("m=analyze, msg=Fluxo do Banco de Dados");
 
             } else {
                 MusicLanguage musicLanguage;
@@ -197,8 +189,6 @@ public class MusixMatchApiRequest {
                     trackId = data.getTrackId();
 
                     language = musixMatch.getSnippet(trackId).getSnippetLanguage();
-
-                    System.out.println(language);
 
                     List<Genre> genreSet = new ArrayList<>();
 
@@ -229,9 +219,10 @@ public class MusixMatchApiRequest {
                     musicLanguageRepository.saveAndFlush(musicLanguage);
 
 
+                    LOGGER.info("m=analyze, msg=Fluxo da API");
+
                 } catch (MusixMatchException e) {
-                    e.printStackTrace();
-                    System.out.println("No Music found!");
+                    LOGGER.error("m=analyze, msg=No Music found!, error={}",e.getMessage());
                 }
             }
 

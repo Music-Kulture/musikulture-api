@@ -22,7 +22,13 @@ public interface ArtistRepository extends JpaRepository<Artist, String> {
 
     Optional<Artist> findByName(String name);
 
-    @Query(value = "select artist.* from genre, genre_artists, artist where genre_artists.artist_id = artist.id AND genre_artists.genre_id = genre.id AND genre.name IN(:genres)", nativeQuery = true)
+    @Query(value = "select artist.*\n" +
+            "from genre,\n" +
+            "     genre_artists,\n" +
+            "     artist\n" +
+            "where genre_artists.artist_id = artist.id\n" +
+            "  AND genre_artists.genre_id = genre.id\n" +
+            "  AND genre.name IN (:genres)", nativeQuery = true)
     Optional<Artist> findByGenres(Set<Genre> genres);
 }
 
