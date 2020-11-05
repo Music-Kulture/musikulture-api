@@ -3,10 +3,13 @@ package br.com.musikulture.spotify;
 import br.com.musikulture.music.TrackAnalyzed;
 import br.com.musikulture.musixmatch.MusixMatchApiRequest;
 import com.wrapper.spotify.model_objects.specification.TrackSimplified;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+@Component
 
 public class RecommendationBuilder {
 
@@ -15,7 +18,7 @@ public class RecommendationBuilder {
     List<TrackAnalyzed> recommendationList = new ArrayList<>();
 
 
-    public List<TrackAnalyzed> getRecommendationListFromTrackAnalyzedList(String lang) {
+    public List<TrackAnalyzed> getRecommendationListFromTrackAnalyzedList(String lang, WebAPISpotifyRequest webAPISpotifyRequest, MusixMatchApiRequest musixMatchApiRequest) {
 
         AtomicReference<StringBuilder> artistSeed = new AtomicReference<>(new StringBuilder());
         AtomicReference<StringBuilder> genreSeed = new AtomicReference<>(new StringBuilder());
@@ -27,7 +30,7 @@ public class RecommendationBuilder {
             trackSeed.set(new StringBuilder());
 
             artistSeed.get().append(trackAnalyzed.getPrincipalArtistId());
-            trackAnalyzed.getGenres().subList(0, Math.min(trackAnalyzed.getGenres().size(), 3)).forEach(s -> {
+            trackAnalyzed.getGenres().subList(0, Math.min(trackAnalyzed.getGenres().size(), 4)).forEach(s -> {
                 genreSeed.get().append(s).append(",");
             });
 
@@ -40,10 +43,10 @@ public class RecommendationBuilder {
             System.out.println(genreSeed.toString());
             System.out.println(trackSeed.toString());
 
-            List<TrackSimplified> preRecommendationList = WebAPISpotifyRequest.getRecommendations(artistSeed.toString(), genreSeed.toString(), trackSeed.toString(), lang);
+            List<TrackSimplified> preRecommendationList = webAPISpotifyRequest.getRecommendations(artistSeed.toString(), genreSeed.toString(), trackSeed.toString(), lang);
 
 
-            recommendationList.addAll(MusixMatchApiRequest.analyzeSavedTracks(preRecommendationList, lang));
+            recommendationList.addAll(musixMatchApiRequest.analyzeSavedTracks(preRecommendationList, lang, webAPISpotifyRequest));
 
 
         });

@@ -31,7 +31,7 @@ public class TrackAnalyzed {
         this.genres = genres;
     }
 
-    public TrackAnalyzed(TrackSimplified trackSimplified, String language, int musixMatchTrackId) {
+    public TrackAnalyzed(TrackSimplified trackSimplified, String language, int musixMatchTrackId, WebAPISpotifyRequest webAPISpotifyRequest) {
         this.language = language;
         this.musixMatchTrackId = Integer.toString(musixMatchTrackId);
         allArtists = new HashMap<>();
@@ -50,7 +50,7 @@ public class TrackAnalyzed {
         this.trackName = trackSimplified.getName();
         this.spotifyTrackId = trackSimplified.getId();
 
-        this.genres = WebAPISpotifyRequest.getGenres(trackSimplified.getArtists());
+        this.genres = webAPISpotifyRequest.getGenres(trackSimplified.getArtists());
     }
 
     public TrackAnalyzed() {
