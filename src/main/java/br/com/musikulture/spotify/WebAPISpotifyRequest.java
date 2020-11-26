@@ -63,7 +63,7 @@ public class WebAPISpotifyRequest {
             getRecommendationsRequest = spotifyApi
                     .getRecommendations()
 //                    .market(CountryCode.getByCodeIgnoreCase(lang))
-                    .limit(100)
+                    .limit(Integer.parseInt(System.getenv("MAX_RECOMMENDATION_SIZE")))
                     .seed_artists(artistSeed)
                     .seed_genres(genreSeed)
                     .seed_tracks(trackSeed)
@@ -83,7 +83,7 @@ public class WebAPISpotifyRequest {
         try {
             createApi(token);
             getUsersSavedTracksRequest = spotifyApi.getUsersSavedTracks()
-                    .limit(50)
+                    .limit(Integer.parseInt(System.getenv("MAX_USER_TRACKS")))
                     .offset(0)
 //                    .market(CountryCode.BR)
                     .build();
