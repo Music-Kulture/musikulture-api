@@ -132,7 +132,7 @@ public class MusixMatchApiRequest {
                     if (!musicLanguageRepository.existsBySpotifyId(trackSimplified.getId()))
                         musicLanguageRepository.saveAndFlush(musicLanguage);
                     LOGGER.info("m=analyze, msg=Fluxo da API");
-                } catch (MusixMatchException | RuntimeException e) {
+                } catch (Exception e) {
                     LOGGER.error("m=analyzeSavedTracks msg= Error: {}",e.getMessage());
                 }
             }
@@ -221,7 +221,7 @@ public class MusixMatchApiRequest {
 
                     LOGGER.info("m=analyze, msg=Fluxo da API");
 
-                } catch (MusixMatchException e) {
+                } catch (Exception e) {
                     LOGGER.error("m=analyze, msg=No Music found!, error={}",e.getMessage());
                 }
             }

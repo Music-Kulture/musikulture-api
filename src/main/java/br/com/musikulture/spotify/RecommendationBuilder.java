@@ -3,6 +3,8 @@ package br.com.musikulture.spotify;
 import br.com.musikulture.music.TrackAnalyzed;
 import br.com.musikulture.musixmatch.MusixMatchApiRequest;
 import com.wrapper.spotify.model_objects.specification.TrackSimplified;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ public class RecommendationBuilder {
 
     List<TrackAnalyzed> trackAnalyzedList = new ArrayList<>();
     List<TrackAnalyzed> recommendationList = new ArrayList<>();
+    private final Logger LOGGER = LoggerFactory.getLogger(RecommendationBuilder.class);
 
 
     public List<TrackAnalyzed> getRecommendationListFromTrackAnalyzedList(String lang, WebAPISpotifyRequest webAPISpotifyRequest, MusixMatchApiRequest musixMatchApiRequest) {
@@ -24,26 +27,30 @@ public class RecommendationBuilder {
         AtomicReference<StringBuilder> genreSeed = new AtomicReference<>(new StringBuilder());
         AtomicReference<StringBuilder> trackSeed = new AtomicReference<>(new StringBuilder());
 
-        trackAnalyzedList.forEach(trackAnalyzed -> {
-            genreSeed.set(new StringBuilder());
-            artistSeed.set(new StringBuilder());
-            trackSeed.set(new StringBuilder());
+        try {
+            trackAnalyzedList.forEach(trackAnalyzed -> {
+                genreSeed.set(new StringBuilder());
+                artistSeed.set(new StringBuilder());
+                trackSeed.set(new StringBuilder());
 
-            artistSeed.get().append(trackAnalyzed.getPrincipalArtistId());
-            trackAnalyzed.getGenres().subList(0, Math.min(trackAnalyzed.getGenres().size(), 4)).forEach(s -> {
-                genreSeed.get().append(s).append(",");
+                artistSeed.get().append(trackAnalyzed.getPrincipalArtistId());
+                trackAnalyzed.getGenres().subList(0, Math.min(trackAnalyzed.getGenres().size(), 4)).forEach(s -> {
+                    genreSeed.get().append(s).append(",");
+                });
+
+
+                trackSeed.get().append(trackAnalyzed.getSpotifyTrackId());
+                genreSeed.get().deleteCharAt(genreSeed.get().length() - 1);
+
+                List<TrackSimplified> preRecommendationList = webAPISpotifyRequest.getRecommendations(artistSeed.toString(), genreSeed.toString(), trackSeed.toString(), lang);
+
+                recommendationList.addAll(musixMatchApiRequest.analyzeSavedTracks(preRecommendationList, lang, webAPISpotifyRequest));
+
+
             });
-
-
-            trackSeed.get().append(trackAnalyzed.getSpotifyTrackId());
-            genreSeed.get().deleteCharAt(genreSeed.get().length() - 1);
-
-            List<TrackSimplified> preRecommendationList = webAPISpotifyRequest.getRecommendations(artistSeed.toString(), genreSeed.toString(), trackSeed.toString(), lang);
-
-            recommendationList.addAll(musixMatchApiRequest.analyzeSavedTracks(preRecommendationList, lang, webAPISpotifyRequest));
-
-
-        });
+        } catch (Exception e) {
+            LOGGER.error("m=getRecommendationListFromTrackAnalyzedList, msg=No Music found!, error={}", e.getMessage());
+        }
 
 
         recommendationList.forEach(System.out::println);

@@ -71,7 +71,7 @@ public class WebAPISpotifyRequest {
             recommendationTracks.addAll(Arrays.asList(getRecommendationsRequest.execute().getTracks()));
 
 
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
+        } catch (Exception e) {
             LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
         }
 
@@ -89,7 +89,7 @@ public class WebAPISpotifyRequest {
                     .build();
 
             return Arrays.asList(getUsersSavedTracksRequest.execute().getItems());
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
+        } catch (Exception e) {
             LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
         }
         return null;
@@ -129,7 +129,7 @@ public class WebAPISpotifyRequest {
                 } else
                     genres.addAll(byArtists);
 
-            } catch (IOException | SpotifyWebApiException | ParseException e) {
+            } catch (Exception e) {
                 LOGGER.error("m=getRecommendations, msg=Error: {}",e.getMessage());
             }
         });
